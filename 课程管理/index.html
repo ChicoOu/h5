@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>课程测试</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="./css/c2.css">
+    <script src="./js/course2.js"></script>
+    <script>
+        // 全局对象
+        var courseList = new c2.CourseList();
+
+        window.onload = function () {
+            loadData();
+        }
+
+        function onAdd() {
+            //alert('开始添加了!');
+            const idInput = document.getElementById('course_id');
+            const nameInput = document.getElementById('course_name');
+            //alert(idInput.value);
+            //alert(nameInput.value);
+            // var course = new c2.Course();
+            // course.setId(idInput.value);
+            // course.setName(nameInput.value);
+            courseList.addCourse(idInput.value, nameInput.value);
+
+            refresh();
+        }
+
+        function onDel() {
+            const idInput = document.getElementById('course_id');
+            courseList.remove(idInput.value);
+            refresh();
+        }
+
+        function onUpdate() {
+            const idInput = document.getElementById('course_id');
+            const nameInput = document.getElementById('course_name');
+            courseList.update(idInput.value, nameInput.value);
+
+            refresh();
+        }
+
+        function onList() {
+            const idInput = document.getElementById('course_id');
+            const nameInput = document.getElementById('course_name');
+
+            if (idInput.value) {
+                const course = courseList.getById(idInput.value);
+                if (course) {
+                    let str = '<li class="list-group-item">' + course.toString() + '</li>';
+                    const coursesUl = document.getElementById('courses');
+                    coursesUl.innerHTML = str;
+
+                    return;
+                }
+            }
+
+            if (nameInput.value) {
+                const courses = courseList.getByName(nameInput.value);
+                let str = '';
+                for (let course of courses) {
+                    str += '<li class="list-group-item">' + course.toString() + '</li>';
+                }
+
+                const coursesUl = document.getElementById('courses');
+                coursesUl.innerHTML = str;
+            } else {
+                refresh();
+            }
+        }
+
+        function loadData() {
+            var courseService = new c2.CourseService();
+            for (let item of courseService.data) {
+                console.log(item);
+                let course = new c2.Course();
+                course.setName(item.name);
+                course.setId(item.id);
+                courseList.add(course);
+            }
+            refresh();
+            /*courseService.load(function (data) {
+                for (let item of data) {
+                    console.log(item);
+                    let course = new c2.Course();
+                    course.setName(item.name);
+                    course.setId(item.id);
+                    courseList.add(course);
+                }
+                refresh();
+            }, function (err) {
+
+            });*/
+        }
+
+        function refresh() {
+            let str = '';
+            let i = 0;
+            for (let course of courseList.getAll()) {
+                str += '<li class="list-group-item" onclick="onCourseClicked(' + i + ')">' + course.toString() + '</li>';
+                i++;
+            }
+            console.log(str);
+            const coursesUl = document.getElementById('courses');
+            if (str.length <= 0) {
+                str = '<li class="list-group-item disabled">暂无课程</li>';
+            }
+            coursesUl.innerHTML = str;
+
+            const badge = document.getElementById('courseNoBadge');
+            if (courseList.getAll().length > 0) {
+                badge.innerHTML = courseList.getAll().length;
+            }
+        }
+
+        function onCourseClicked(index) {
+            const coursesUl = document.getElementById('courses');
+            let liItems = coursesUl.getElementsByTagName('li');
+            let i = 0;
+            for (let liItem of liItems) {
+                if (i === index) {
+                    liItem.setAttribute('class', 'list-group-item active');
+                    const idInput = document.getElementById('course_id');
+                    const nameInput = document.getElementById('course_name');
+                    idInput.value = courseList.getAll()[index].getId();
+                    nameInput.value = courseList.getAll()[index].getName();
+                } else {
+                    liItem.setAttribute('class', 'list-group-item');
+                }
+                i++;
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">学生管理信息系统</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">课程管理 <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./student.html">学生管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./performance.html">成绩管理</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <form>
+            <h3>课程管理<span class="badge badge-danger" id="courseNoBadge"></span></h3>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="course_id">课程标识</label>
+                        <input type="text" class="form-control" id="course_id" placeholder="输入id">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="course_name">课程名字</label>
+                        <input type="text" class="form-control" id="course_name" placeholder="输入name">
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="onAdd()">添加课程</button>
+            <button type="button" class="btn btn-default" onclick="onUpdate()">修改</button>
+            <button type="button" class="btn btn-danger" onclick="onDel()">删除</button>
+            <button type="button" class="btn btn-warning" onclick="onList()">查询</button>
+        </form>
+
+        <ul id="courses" class="list-group">
+
+        </ul>
+    </div>
+
+</body>
+
+</html>

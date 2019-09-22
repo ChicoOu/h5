@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>课程测试</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="./css/c2.css">
+    <script src="./js/course2.js"></script>
+    <script>
+        var courseList = new c2.CourseList();
+        var studentList = new c2.StudentList();
+        var performanceList = null;
+
+        window.onload = function () {
+            loadData();
+        }
+
+        function loadData() {
+            var courseService = new c2.CourseService();
+            for (let item of courseService.data) {
+                let course = new c2.Course();
+                course.setName(item.name);
+                course.setId(item.id);
+                courseList.add(course);
+            }
+
+            performanceList = new c2.PerformanceList(courseList);
+
+            var studentService = new c2.StudentService();
+            for (let item of studentService.data) {
+                let student = new c2.Student();
+                student.setName(item.name);
+                student.setId(item.id);
+                student.setGender(item.gender);
+                studentList.add(student);
+                let values = [];
+                for (let i = 0; i < courseList.getAll().length; i++) {
+                    values.push(0);
+                }
+                performanceList.addPerformance(student, values);
+            }
+
+            refresh();
+        }
+
+        function refresh() {
+            const trHead = document.getElementById('perf_head');
+            let str = `<th scope="col">#</th>
+                        <th scope="col">学号</th>
+                        <th scope="col">姓名</th>
+            `;
+            for (let course of performanceList.courseList.getAll()) {
+                str += '<th scope="col">' + course.getName() + '</th>';
+            }
+            trHead.innerHTML = str;
+
+            const trBody = document.getElementById('perf_body');
+            str = '';
+            let index = 1;
+            for (let performance of performanceList.getAll()) {
+                str += '<tr><th scope="row">' + index + '</th>';
+                str += '<td>' + performance.student.getId() + '</td>';
+                str += '<td>' + performance.student.getName() + '</td>';
+                for (let val of performance.values) {
+                    str += '<td>' + val + '</td>';
+                }
+                str += '</tr>';
+                index++;
+            }
+            trBody.innerHTML = str;
+        }
+
+        function onUpdate() {
+            const tbl = document.getElementById('perf_body');
+            tbl.setAttribute('contenteditable', true);
+        }
+
+        function onOK() {
+            const tbl = document.getElementById('perf_body');
+            const trs = tbl.getElementsByTagName('tr');
+
+            for (let tr of trs) {
+                const values = [];
+                const tds = tr.getElementsByTagName('td');
+                let index = 0;
+                let id = '';
+                for (let td of tds) {
+                    if (index > 2) {
+                        values.push(td.innerText);
+                    } else if (index === 1) {
+                        id = td.innerText;
+                    }
+                }
+                performanceList.update(id, values);
+            }
+            tbl.setAttribute('contenteditable', false);
+        }
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">学生管理信息系统</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="./index.html">课程管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./student.html">学生管理</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">成绩管理<span class="sr-only">(current)</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3>成绩管理<span class="badge badge-danger" id="perforanceNoBadge"></span></h3>
+        <button type="button" class="btn btn-default" onclick="onUpdate()">录入成绩</button>
+        <button type="button" class="btn btn-primary" onclick="onOK()">确定</button>
+        <table class="table table-striped table-hover perf">
+            <thead class="thead-dark">
+                <tr id="perf_head">
+
+                </tr>
+            </thead>
+            <tbody id="perf_body">
+
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
