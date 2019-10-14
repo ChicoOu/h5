@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>智慧灯控</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script>
+        var ledResult = null;
+
+        window.onload = function () {
+            refresh();
+        }
+
+        function changeLed() {
+            const target = window.event.target;
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(this.responseText);
+                    const result = JSON.parse(this.responseText);
+                    if (result.succ) {
+                        alert('修改成功!');
+                        if (ledResult.customer_status === 0) {
+                            target.value = '关';
+                            ledResult.customer_status = 1;
+                        } else {
+                            target.value = '开';
+                            ledResult.customer_status = 0;
+                        }
+                    }
+                }
+
+            };
+            if (ledResult.customer_status === 0) {
+                xhttp.open("POST", "/led/001/1", true);
+            } else {
+                xhttp.open("POST", "/led/001/0", true);
+            }
+
+            xhttp.send();
+        }
+
+        function refresh() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(this.responseText);
+                    const result = JSON.parse(this.responseText);
+                    ledResult = result;
+                    const pErr = document.getElementById('ledTbody');
+                    let str = '<tr><td>1</td><td>' + result.id + '</td><td>'
+                    if (result.status == 1) {
+                        str += '开';
+                    } else {
+                        str += '关';
+                    }
+                    '</td>'
+                    if (result.customer_status == 1) {
+                        str += '<td><input type="button" class="btn btn-primary" onclick="changeLed()" value="关" class="btn"></td>';
+                    } else {
+                        str += '<td><input type="button" class="btn btn-primary" onclick="changeLed()" value="开" class="btn"></td>';
+                    }
+                    '</tr>'
+                    console.log(str);
+                    pErr.innerHTML = str;
+                }
+
+            };
+            xhttp.open("GET", "/led/001", true);
+            xhttp.send();
+        }
+    </script>
+    <link rel="stylesheet" href="./app.css">
+</head>
+
+<body>
+    <h3>智慧灯控</h3>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th>#</th>
+                <th>id</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id='ledTbody'>
+
+        </tbody>
+    </table>
+</body>
+
+</html>
