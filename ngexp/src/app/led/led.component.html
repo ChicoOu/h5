@@ -1,0 +1,22 @@
+<table class="table">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">标识号</th>
+      <th scope="col">状态</th>
+      <th scope="col">操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let led of leds$ | async; let i = index">
+      <td>{{i}}</td>
+      <td>{{led.id}}</td>
+      <td>{{led.status === 0? '关' : '开'}}</td>
+      <td>
+        <a href="#" role="button" class="btn btn-primary" (click)="changeLed(led)">
+          {{led.customer_status === 0 ? '开' : '关'}}
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>

@@ -124,6 +124,51 @@ app.post('/user', function (req, res) {
     connection.end();
 });
 
+app.post('/user/:username/:password', function (req, res) {
+    const username = req.params["username"];
+    const password = req.params["password"];
+
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '123456',
+        port: '3306',
+        database: 'meetingroom'
+    });
+
+    connection.connect();
+
+    var sql = "SELECT * FROM user WHERE username='"
+        + username + "' and password='" + password + "'";
+    // 查询
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log('[SELECT ERROR] - ', err.message);
+            res.send(JSON.stringify({
+                succ: false,
+                msg: '账号或者密码不正确！'
+            }));
+            return;
+        }
+
+        console.log('--------------------------SELECT----------------------------');
+        console.log(result);
+        if (result.length <= 0) {
+            res.send(JSON.stringify({
+                succ: false,
+                msg: '账号或者密码不正确！'
+            }));
+        } else {
+            res.send(JSON.stringify({
+                succ: true,
+                msg: 'Login success'
+            }));
+        }
+    });
+
+    connection.end();
+});
+
 /* 
  * restful
  *
@@ -133,6 +178,7 @@ app.put('/led/:id/:status', function (req, res) {
     const id = req.params["id"];
     const status = req.params["status"];
 
+    console.log('From PT!');
     var connection = mysql.createConnection({
         host: 'localhost',
         user: 'root',
@@ -175,6 +221,69 @@ app.put('/led/:id/:status', function (req, res) {
         connection.end();
     };
     connection.query(sql, updateCallback);
+});
+
+app.put('/env/:id/:temp/:humd', function (req, res) {
+    const id = req.params["id"];
+    const temp = req.params["temp"];
+    const humd = req.params["humd"];
+
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '123456',
+        port: '3306',
+        database: 'meetingroom'
+    });
+
+    connection.connect();
+
+    let sql = 'INSERT INTO environment values(\'' + id + '\', ' + Date.now() + ',' + humd + ',' + temp
+        + ')';
+    console.log(sql);
+    const updateCallback = function (err, result) {
+        if (err) {
+            console.log('[UPDATE ERROR] - ', err.message);
+            res.send('修改失败!');
+            return;
+        }
+
+        res.send({ id: id, status: 'success' });
+        connection.end();
+    };
+    connection.query(sql, updateCallback);
+});
+
+app.get('/env/:id/:count', function (req, res) {
+    const id = req.params["id"];
+    const count = req.params["count"];
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '123456',
+        port: '3306',
+        database: 'meetingroom'
+    });
+
+    connection.connect();
+    var sql = "select  * from environment WHERE id='" + id + "' order by time desc limit " + count;
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log('[SELECT ERROR] - ', err.message);
+            res.send(JSON.stringify({
+                succ: false,
+                msg: '查询失败!'
+            }));
+            return;
+        }
+
+        const resp = {
+            id: id,
+            data: result
+        };
+        res.send(JSON.stringify(resp));
+    });
+    connection.end();
 });
 
 app.get('/led/:id', function (req, res) {
@@ -316,6 +425,10 @@ app.post('/led/:id', function (req, res) {
     // 4) 调用SQL语句
     connection.query(sql, callback);
     connection.end();
+});
+
+app.get('/hello.html', function (req, res) {
+    res.send('<h2>欢迎访问服务器网页</h2>');
 });
 
 app.use(express.static('dist'));

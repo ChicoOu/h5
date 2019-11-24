@@ -1,0 +1,15 @@
+{
+  "name": "ali",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chico Ou",
+  "license": "ISC",
+  "dependencies": {
+    "alibabacloud-iot-device-sdk": "^1.2.8",
+    "express": "^4.17.1"
+  }
+}

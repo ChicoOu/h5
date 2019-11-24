@@ -24,7 +24,7 @@
             refresh();
         }
 
-        function changeLed() {
+        function changeLed(id) {
             const target = window.event.target;
 
             var xhttp = new XMLHttpRequest();
@@ -33,7 +33,7 @@
                     console.log(this.responseText);
                     const result = JSON.parse(this.responseText);
                     if (result.succ) {
-                        alert('修改成功!');
+                        // alert('修改成功!');
                         if (ledResult.customer_status === 0) {
                             target.value = '关';
                             ledResult.customer_status = 1;
@@ -46,9 +46,9 @@
 
             };
             if (ledResult.customer_status === 0) {
-                xhttp.open("POST", "/led/001/1", true);
+                xhttp.open("POST", "/led/" + id + "/1", true);
             } else {
-                xhttp.open("POST", "/led/001/0", true);
+                xhttp.open("POST", "/led/" + id + "/0", true);
             }
 
             xhttp.send();
@@ -62,25 +62,33 @@
                     const result = JSON.parse(this.responseText);
                     ledResult = result;
                     const pErr = document.getElementById('ledTbody');
-                    let str = '<tr><td>1</td><td>' + result.id + '</td><td>'
-                    if (result.status == 1) {
-                        str += '开';
-                    } else {
-                        str += '关';
+                    let index = 1; // 索引号
+                    let str = '';
+                    for (let item of result) {
+                        str += '<tr><td>' + index + '</td><td>' + item.id + '</td><td>'
+                        index++;
+                        if (item.status == 1) {
+                            str += '开';
+                        } else {
+                            str += '关';
+                        }
+                        '</td>'
+                        if (item.customer_status == 1) {
+                            str += '<td><input type="button" class="btn btn-primary" onclick="changeLed(\''
+                                + item.id + '\')" value="关" class="btn"></td>';
+                        } else {
+                            str += '<td><input type="button" class="btn btn-primary" onclick="changeLed(\''
+                                + item.id + '\')" value="开" class="btn"></td>';
+                        }
+                        '</tr>'
+                        console.log(str);
                     }
-                    '</td>'
-                    if (result.customer_status == 1) {
-                        str += '<td><input type="button" class="btn btn-primary" onclick="changeLed()" value="关" class="btn"></td>';
-                    } else {
-                        str += '<td><input type="button" class="btn btn-primary" onclick="changeLed()" value="开" class="btn"></td>';
-                    }
-                    '</tr>'
-                    console.log(str);
+
                     pErr.innerHTML = str;
                 }
 
             };
-            xhttp.open("GET", "/led/001", true);
+            xhttp.open("GET", "/led", true);
             xhttp.send();
         }
     </script>
